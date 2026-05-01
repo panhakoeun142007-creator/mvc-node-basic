@@ -1,97 +1,80 @@
 import User from "../models/User.js";
+import BaseController from "./BaseController.js";
 
-class UserController {
-  static async createUser(req, res) {
+class UserController extends BaseController {
+  async createUser(req, res) {
     try {
-      const { name, email } = req.body; // destructuring object
+      const { name, email } = req.body;
 
-      // call model
+      if (!name || !email) {
+        return this.error(res, "Name and email are required", null, 400);
+      }
+
       const result = await User.create({ name, email });
 
-      res.status(201).json({
-        message: "User created successfully",
-        data: result
-      });
-
+      return this.success(res, "User created successfully", result, 201);
     } catch (error) {
-      res.status(500).json({
-        message: "Error creating user",
-        error: error.message
-      });
+      return this.error(res, "Error creating user", error.message);
     }
   }
-  static async getAllUsers(req, res) {
-  try {
-    const users = await User.getAll();
 
-    res.status(200).json({
-      message: "Users fetched successfully",
-      data: users
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error fetching users",
-      error: error.message
-    });
+  async getAllUsers(req, res) {
+    try {
+      const users = await User.getAll();
+      return this.success(res, "Users fetched successfully", users);
+    } catch (error) {
+      return this.error(res, "Error fetching users", error.message);
+    }
   }
-}
 
-static async getUserById(req, res) {
-  try {
-    const { id } = req.params;
-    const user = await User.getById(id);
+  async getUserById(req, res) {
+    try {
+      const { id } = req.params;
 
-    res.status(200).json({
-      message: "User fetched successfully",
-      data: user
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error fetching user",
-      error: error.message
-    });
+      const user = await User.getById(id);
+
+      if (!user) {
+        return this.error(res, "User not found", null, 404);
+      }
+
+      return this.success(res, "User fetched successfully", user);
+    } catch (error) {
+      return this.error(res, "Error fetching user", error.message);
+    }
   }
-}
 
+  async updateUser(req, res) {
+    try {
+      const { id } = req.params;
+      const { name, email } = req.body;
 
-static async updateUser(req, res) {
-  try {
-    const { id } = req.params;
-    const { name, email } = req.body;
+      const result = await User.update(id, { name, email });
 
-    const result = await User.update(id, { name, email });
+      if (result === 0) {
+        return this.error(res, "User not found", null, 404);
+      }
 
-    res.status(200).json({
-      message: "User updated successfully",
-      data: result
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error updating user",
-      error: error.message
-    });
+      return this.success(res, "User updated successfully");
+    } catch (error) {
+      return this.error(res, "Error updating user", error.message);
+    }
   }
-}
 
-static async deleteUser(req, res) {
-  try {
-    const { id } = req.params;
+  async deleteUser(req, res) {
+    try {
+      const { id } = req.params;
 
-    const result = await User.delete(id);
+      const result = await User.delete(id);
 
-    res.status(200).json({
-      message: "User deleted successfully",
-      data: result
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error deleting user",
-      error: error.message
-    });
+      if (result === 0) {
+        return this.error(res, "User not found", null, 404);
+      }
+
+      return this.success(res, "User deleted successfully");
+    } catch (error) {
+      return this.error(res, "Error deleting user", error.message);
+    }
   }
-}
-
-
 }
 
 export default UserController;

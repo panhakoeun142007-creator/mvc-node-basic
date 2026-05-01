@@ -1,68 +1,44 @@
-import db from "../config/db.js";
+import BaseModel from "./BaseModel.js";
 
-class User {
-    static async create(userData){
-       try{
-        const{name, email,} = userData;
-        const sql = "INSERT INTO users (name, email) VALUES (?, ?)";
-        const [result] = await db.execute(sql, [name, email]);
-        return result;
-       }catch(error){
-        throw error;
-       
-       } 
-    }
-    static async getAll() {
-  try {
-    const sql = "SELECT * FROM users";
-    const [rows] = await db.execute(sql);
-    return rows;
-  } catch (error) {
-    throw error;
+class User extends BaseModel {
+  static async create({ name, email }) {
+    const result = await this.execute(
+      "INSERT INTO users (name, email) VALUES (?, ?)",
+      [name, email]
+    );
+
+    return { id: result.insertId, name, email };
   }
-}
 
-static async getById(id) {
-  try {
-    const sql = "SELECT * FROM users WHERE id = ?";
-    const [rows] = await db.execute(sql, [id]);
+  static async getAll() {
+    return await this.query("SELECT * FROM users");
+  }
+
+  static async getById(id) {
+    const rows = await this.query(
+      "SELECT * FROM users WHERE id = ?",
+      [id]
+    );
     return rows[0];
-  } catch (error) {
-    throw error;
+  }
+
+  static async update(id, { name, email }) {
+    const result = await this.execute(
+      "UPDATE users SET name = ?, email = ? WHERE id = ?",
+      [name, email, id]
+    );
+
+    return result.affectedRows;
+  }
+
+  static async delete(id) {
+    const result = await this.execute(
+      "DELETE FROM users WHERE id = ?",
+      [id]
+    );
+
+    return result.affectedRows;
   }
 }
 
-
-static async getAll() {
-  try {
-    const sql = "SELECT * FROM users";
-    const [rows] = await db.execute(sql);
-    return rows;
-  } catch (error) {
-    throw error;
-  }
-}
-
-static async update(id, userData) {
-  try {
-    const { name, email } = userData;
-    const sql = "UPDATE users SET name = ?, email = ? WHERE id = ?";
-    const [result] = await db.execute(sql, [name, email, id]);
-    return result;
-  } catch (error) {
-    throw error;
-  }
-}
-
-static async delete(id) {
-  try {
-    const sql = "DELETE FROM users WHERE id = ?";
-    const [result] = await db.execute(sql, [id]);
-    return result;
-  } catch (error) {
-    throw error;
-  }
-}
-
-
-}export default User;
+export default User;
